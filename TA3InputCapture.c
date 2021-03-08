@@ -53,7 +53,6 @@ void ta3dummy(uint16_t t){};       // dummy function
 void (*CaptureTask0)(uint16_t time) = ta3dummy;// user function
 void (*CaptureTask1)(uint16_t time) = ta3dummy;// user function
 
-
 //------------TimerA3Capture_Init01------------
 // Initialize Timer A3 in edge time mode to request interrupts on
 // the rising edges of P10.4 (TA3CCP0) and P10.5 (TA3CCP1).  The
@@ -66,13 +65,14 @@ void (*CaptureTask1)(uint16_t time) = ta3dummy;// user function
 // Output: none
 // Assumes: low-speed subsystem master clock is 12 MHz
 void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t time)){
-    CaptureTask0 = task0;              // user function for left wheel
+    CaptureTask0 = task0;               // user function for left wheel
     CaptureTask1 = task1;               // user function for right wheel
+    
      // initialize P10.4,5 and make them input to TA3 CC registers 0 and 1
-     P10->SEL0 |= 0x30;
-     P10->SEL1 &= ~0x30;                   // configure P10.4 as TA3CCIO and P10.5 as TA3CCI1
-     P10->DIR &= ~0x30;                    // make P10.4,5 in
-     TIMER_A3->CTL &= ~0x0030;
+    P10->SEL0 |= 0x30;
+    P10->SEL1 &= ~0x30;                   // configure P10.4 as TA3CCIO and P10.5 as TA3CCI1
+    P10->DIR &= ~0x30;                    // make P10.4,5 in
+    TIMER_A3->CTL &= ~0x0030;
 
      // TA3 CTL INSTRUCTIONS
      // halt Timer A3
@@ -120,11 +120,11 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t ti
 }
 
 void TA3_0_IRQHandler(void){
-    TIMER_A3->CCTL[0] &= ~0x0001;             // acknowledge capture/compare interrupt 0
+    TIMER_A3->CCTL[0] &= ~0x0001;             // acknowledge capture/compare interrupt 0 (turns off the activation flag)
      (*CaptureTask0)(TIMER_A3->CCR[0]);         // execute user task
 }
 
-// THE FOLLOWING was changed on Dr. Moser's suggestion to make TA3_N_IRGHandler just like the previous function, but for for CaptureTask1.
+// THE FOLLOWING was changed on Dr. Moser's suggestion to make TA3_N_IRQHandler just like the previous function, but for for CaptureTask1.
 void TA3_N_IRQHandler(void){
     // make this like TA3_0_IRQHandler, but for Capture/Compare 1, not 0
     TIMER_A3->CCTL[1] &= ~0x0001;             // acknowledge capture/compare interrupt 0
