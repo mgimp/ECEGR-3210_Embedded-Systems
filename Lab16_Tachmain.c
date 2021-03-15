@@ -78,7 +78,7 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "..\inc\Tachometer.h"
 #include "..\inc\TimerA1.h"
 #include "..\inc\TA3InputCapture.h"
-//#include "..\inc\TA2InputCapture.h"
+#include "..\inc\TA2InputCapture.h"
 #include "..\inc\TExaS.h"
 #include "..\inc\FlashProgram.h"
 #include "..\inc\Bump.h"
@@ -191,14 +191,14 @@ void main(void){
     DisableInterrupts();
     Clock_Init48MHz();   // 48 MHz clock; 12 MHz Timer A clock
     LaunchPad_Init();
+    Tachometer_Init();  // Also calls TimerA3_Init01()
     First0 = First1 = 0; // first will be wrong
      Done0 = Done1 = 0;   // set on subsequent
      Time = 0; DutyLeft = DutyRight = 0;
      Bump_Init();
      Motor_Init();        // activate Lab 12 software
      PWM_Init34((unsigned short int) 7500,(unsigned short int) 3750,(unsigned short int) 3750);  // Start Timer A0 with 2.6 and 2.7 as PWM outputs, period of 10mSec for parameter 7500 // @suppress("Invalid arguments")
-     TimerA3Capture_Init01(&PeriodMeasure0, &PeriodMeasure1);
-//     TimerA2Capture_Init01(&PeriodMeasure0, &PeriodMeasure1);
+     TimerA2Capture_Init(&PeriodMeasure0, &PeriodMeasure1);
      TimerA1_Init(&Collect, 5000); // 100 Hz
 //     Motor_Forward(7500*.25, 7500*.25); // 25%
      TExaS_Init(LOGICANALYZER_P10);

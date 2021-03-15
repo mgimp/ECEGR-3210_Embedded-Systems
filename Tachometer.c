@@ -98,7 +98,7 @@ void Tachometer_Init(void){
   P5->SEL0 &= ~0x05;
   P5->SEL1 &= ~0x05;               // configure P5.0 and P5.2 as GPIO
   P5->DIR &= ~0x05;                // make P5.0 and P5.2 in
-  TimerA3Capture_Init01(&tachometerRightInt, &tachometerLeftInt);
+  TimerA3Capture_Init(&tachometerRightInt, &tachometerLeftInt);
 }
 
 // ------------Tachometer_Get------------
