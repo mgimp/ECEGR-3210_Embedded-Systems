@@ -62,6 +62,4 @@ policies, either expressed or implied, of the FreeBSD Project.
  */
 void TimerA2Capture_Init(void(*task)(uint16_t time));
 
-void TimerA2Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t time));
-
 #endif /* TA2INPUTCAPTURE_H_ */

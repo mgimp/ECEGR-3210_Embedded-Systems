@@ -16,7 +16,40 @@ For Assignment 7: Controlled Movement:
         is set.
 
     pg.795 19.2.6 Timer _A interrupts  
-        
+
+    pg.121 2.4.3.11 IPR0 Register        
+        IRQ 0 to 3 Priority Register. Use Interrupt Prority Registers to assign priorities from 0 to 255 to each of the available
+        interrupts. 0 is highest and 255 is lowest.
+
+        The hardware priority mechanis only looks at the upper N bit of the priority field (where N is 3 to the MSP432 family 
+        meaning bits 7-5 of the priority bit), so any priority myst be performed in those bits. 
+        3 bits per register represent priority, essentially meaning we have 8 levels of priority.
+
+        The priority registers are described as PRI_#.
+        IPR0 Registers are 4 bytes long and each byte represents a PRI_#.
+
+        Example:
+            TA3_0_IRQHandler and TA3_N_IRQHandler use PRI_15 and PRI_14 in IPR[3]
+            Setting these registers means activating the the registers at some level of priority, let's say they're both priority level 3
+            PRI_15 uses bits 31-29 in IPR[3]
+            PRI_14 uses bits 23-21 in IPR[3]
+            *in code*
+            NVIC->IPR[3] = (NVIC->IPR[3] & 0x0000FFFF) | 0x40400000;
+
+    pg.116 2.4.3.1 ISER0 Register
+        The ISER registers are used to enable interrupts on IRQ 0 to 63, meaning PRI_0 tp PRI_63 in registers IPR[0] to IPR[15].
+        Make sure to enable interrupts for the desired register after setting it up.
+
+    FROM TI-RSLK-PIN_OUT-README.rtf
+        Left Encoder A connected to P10.5 (J5)
+        Left Encoder B connected to P5.2 (J2)
+        Right Encoder A connected to P10.4 (J5)
+        Left Encoder B connected to P5.0 (J2)
+
+        Pololu encoder has 12 counts per revolution (of the gearbox) (counting all 4 edges (rise and fall for A and B encoder pulses)).
+        The motor has a gearbox with a 120:1 ratio.
+        This gives 12*120 = 1440 counts per revolution of the wheel. Since we are only counting one edge of the encoder,
+        we need to divide by 4 for a total of 360 counts per revolution.
 
     The basic structure of an encoder trigger would be as follows:
     // -----INITIALIZATION-----
@@ -58,13 +91,13 @@ For Assignment 7: Controlled Movement:
         uint_t countLeft;
         uint_t velocityLeft;
         void EncoderCountLeft(){
-            
+            // stuff
         }
 
         uint_t countRight;
         uint_t velocityRight;
         void EncoderCountRight(){
-
+            // stuff
         }
 
     Basically, the interrupt should trigger whenever the left or right encoder pulses.
@@ -74,3 +107,6 @@ For Assignment 7: Controlled Movement:
     If the calculated velocity is much different from the input velocity then a new input velocity is 
     delivered.
     Rinse and repeat until all movements have been completed.
+
+    I'll need to initialize TA2 and use the available functions already connected to interrupt priorities for the encoder
+    pulse detection.
