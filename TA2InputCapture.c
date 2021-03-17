@@ -47,8 +47,8 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "msp.h"
 
 void ta2dummy(uint16_t t){};       // dummy function
-void (*CaptureTask0)(uint16_t time) = ta2dummy;// user function
-void (*CaptureTask1)(uint16_t time) = ta2dummy;// user function
+void (*CaptureTaskA2_0)(uint16_t time) = ta2dummy;// user function
+void (*CaptureTaskA2_1)(uint16_t time) = ta2dummy;// user function
 
 //------------TimerA2Capture_Init------------
 // Input: task0 is a pointer to a user function called when P10.4 (TA2CCP0) edge occurs
@@ -74,8 +74,8 @@ void TimerA2Capture_Init(void(*task0)(uint16_t time), void(*task1)(uint16_t time
   // TA2 will be doing the tasks formally done by TA3.
   // The reason is that TA3 is required for encoder interrupts to function.
 
-  CaptureTask0 = task0;       // user function
-  CaptureTask1 = task1;       // user function
+  CaptureTaskA2_0 = task0;       // user function
+  CaptureTaskA2_1 = task1;       // user function
 
   // initialize P8.1 and P5.6 and make them input to TA2 CC registers 1 and 2
   // TA2.CCI0A is tertiary function for P8.1, DS pg.129
@@ -85,7 +85,7 @@ void TimerA2Capture_Init(void(*task0)(uint16_t time), void(*task1)(uint16_t time
 
   // TA2.CCI1A is secondary function for P5.6, DS pg.129
   P5->SEL0 |= 0x40;           // configure P5.6 as TA2.CCI1A
-  P5->SEL1 &= ~0x40;          
+  P5->SEL1 &= ~0x40;
   P5->DIR &= ~0x40;           // make P5.6 in
 
   TIMER_A2->CTL &= ~0x0030;   // Turn off timer
@@ -129,14 +129,14 @@ void TimerA2Capture_Init(void(*task0)(uint16_t time), void(*task1)(uint16_t time
 
 void TA2_0_IRQHandler(void){
     TIMER_A2->CCTL[0] &= ~0x0001;             // acknowledge capture/compare interrupt 0
-     (*CaptureTask0)(TIMER_A2->CCR[0]);         // execute user task
+     (*CaptureTaskA2_0)(TIMER_A2->CCR[0]);         // execute user task
 }
 
-// THE FOLLOWING was changed on Dr. Moser's suggestion to make TA2_N_IRGHandler just like the previous function, but for for CaptureTask1.
+// THE FOLLOWING was changed on Dr. Moser's suggestion to make TA2_N_IRGHandler just like the previous function, but for for CaptureTaskA2_1.
 void TA2_N_IRQHandler(void){
     // make this like TA2_0_IRQHandler, but for Capture/Compare 1, not 0
     TIMER_A2->CCTL[1] &= ~0x0001;             // acknowledge capture/compare interrupt 0
-     (*CaptureTask1)(TIMER_A2->CCR[1]);         // execute user task
+     (*CaptureTaskA2_1)(TIMER_A2->CCR[1]);         // execute user task
 }
 
 

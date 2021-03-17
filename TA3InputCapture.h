@@ -82,6 +82,6 @@ void TimerA3Capture_Init02(void(*task0)(uint16_t time), void(*task2)(uint16_t ti
  * @note  Assumes low-speed subsystem master clock is 12 MHz
  * @brief  Initialize Timer A3 interrupts on P10.4 and P10.5
  */
-void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t time));
+void TimerA3Capture_Init01(void(*task0)(uint16_t currenttime), void(*task1)(uint16_t currenttime));
 
 #endif /* TA3INPUTCAPTURE_H_ */

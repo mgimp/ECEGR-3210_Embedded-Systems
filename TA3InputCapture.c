@@ -50,8 +50,8 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "msp.h"
 
 void ta3dummy(uint16_t t){};       // dummy function
-void (*CaptureTask0)(uint16_t currenttime) = ta3dummy;// user function
-void (*CaptureTask1)(uint16_t currenttime) = ta3dummy;// user function
+void (*CaptureTaskA3_0)(uint16_t currenttime) = ta3dummy;// user function
+void (*CaptureTaskA3_1)(uint16_t currenttime) = ta3dummy;// user function
 
 //------------TimerA3Capture_Init01------------
 // I'm setting TA3 up to interrupt when Left or Right encoders A go high
@@ -68,9 +68,9 @@ void (*CaptureTask1)(uint16_t currenttime) = ta3dummy;// user function
 // Output: none
 // Assumes: low-speed subsystem master clock is 12 MHz
 void TimerA3Capture_Init01(void(*task0)(uint16_t currenttime), void(*task1)(uint16_t currenttime)){
-    CaptureTask0 = task0;               // user function for left wheel
-    CaptureTask1 = task1;               // user function for right wheel
-    
+    CaptureTaskA3_0 = task0;               // user function for left wheel
+    CaptureTaskA3_1 = task1;               // user function for right wheel
+
     // initialize P10.4,5 and make them GPIO In to trigger CCR0 and 1 during encoder pulses
     // I'm pretty sure that P10.4,5 hold the values for the encoders and should trigger the interrupts
     P10->SEL0 &= ~0x30;
@@ -105,12 +105,12 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t currenttime), void(*task1)(uint
     // bit0           clear capture/compare interrupt pending
     // [0100][1001][0001][0000]
     // 0x4910
-    
+
     // THE FOLLOWING change was suggested by Dr. Moser: Change 0x4911 to 0x4910. He wasn't sure if this would be effective or not.
     TIMER_A3->CCTL[0] = (TIMER_A3->CCTL[0] & 0x0208) | 0x4910;  // I EDITED THIS; ORIGINAL: TIMER_A3->CCTL[0] = 0x4911;
-    TIMER_A3->CCTL[1] = (TIMER_A3->CCTL[1] & 0x0208) | 0x4910;	// do both CCTL[0] and CCTL[1] exactly the same
+    TIMER_A3->CCTL[1] = (TIMER_A3->CCTL[1] & 0x0208) | 0x4910;  // do both CCTL[0] and CCTL[1] exactly the same
     TIMER_A3->EX0 &= ~0x0007;       // configure for input clock divider /1
-    NVIC->IP[3] = (NVIC->IP[3]&0x0000FFFF)|0x40400000; // enable PRI_14 and PRI_15 for the IRQHandler functions
+    NVIC->IP[3] = (NVIC->IP[3]&0x0000FFFF)|0x30300000; // enable PRI_14 and PRI_15 for the IRQHandler functions
     // interrupts enabled in the main program after all devices initialized
     NVIC->ISER[0] = 0x0000C000; // enable interrupts
 
@@ -128,14 +128,14 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t currenttime), void(*task1)(uint
 
 void TA3_0_IRQHandler(void){
     TIMER_A3->CCTL[0] &= ~0x0001;             // acknowledge capture/compare interrupt 0 (turns off the activation flag)
-     (*CaptureTask0)(TIMER_A3->CCR[0]);         // execute user task
+     (*CaptureTaskA3_0)(TIMER_A3->CCR[0]);         // execute user task
 }
 
-// THE FOLLOWING was changed on Dr. Moser's suggestion to make TA3_N_IRQHandler just like the previous function, but for for CaptureTask1.
+// THE FOLLOWING was changed on Dr. Moser's suggestion to make TA3_N_IRQHandler just like the previous function, but for for CaptureTaskA3_1.
 void TA3_N_IRQHandler(void){
     // make this like TA3_0_IRQHandler, but for Capture/Compare 1, not 0
     TIMER_A3->CCTL[1] &= ~0x0001;             // acknowledge capture/compare interrupt 0
-     (*CaptureTask1)(TIMER_A3->CCR[1]);         // execute user task
+     (*CaptureTaskA3_1)(TIMER_A3->CCR[1]);         // execute user task
 }
 
 // old robot code
