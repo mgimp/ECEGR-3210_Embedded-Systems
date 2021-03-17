@@ -60,6 +60,7 @@ For Assignment 7: Controlled Movement:
         This gives 12*120 = 1440 counts per revolution of the wheel. Since we are only counting one edge of the encoder,
         we need to divide by 4 for a total of 360 counts per revolution.
 
+    DS pg.126 6.9.3 Timer_A
     DS pg.117 Table 6-39 NVIC Interrupts (continued)
         INTISR[12] -> Timer_A2 -> TA2CCTL0.CCIFG
         INTISR[13] -> Timer_A2 -> TA2CCTLx.CCIFG (x=1 to 4), TA2CTL.TAIFG

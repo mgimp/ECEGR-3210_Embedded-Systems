@@ -78,12 +78,12 @@ void TimerA2Capture_Init(void(*task0)(uint16_t time), void(*task1)(uint16_t time
   CaptureTask1 = task1;       // user function
 
   // initialize P8.1 and P5.6 and make them input to TA2 CC registers 1 and 2
-  // TA2.CCI0A is tertiary function for P8.1, CS pg.129
+  // TA2.CCI0A is tertiary function for P8.1, DS pg.129
   P8->SEL0 &= ~0x02;          // configure P8.1 as TA2.CCI0A
   P8->SEL1 |= 0x02;
   P8->DIR &= ~0x02;           // make P8.1 in
 
-  // TA2.CCI1A is secondary function for P5.6, CS pg.129
+  // TA2.CCI1A is secondary function for P5.6, DS pg.129
   P5->SEL0 |= 0x40;           // configure P5.6 as TA2.CCI1A
   P5->SEL1 &= ~0x40;          
   P5->DIR &= ~0x40;           // make P5.6 in
