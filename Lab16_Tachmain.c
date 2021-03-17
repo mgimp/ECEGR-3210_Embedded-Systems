@@ -74,11 +74,11 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "..\inc\CortexM.h"
 #include "..\inc\LaunchPad.h"
 #include "..\inc\Motor.h"
-#include "..\inc\Nokia5110.h"
+//#include "..\inc\Nokia5110.h"
 #include "..\inc\Tachometer.h"
 #include "..\inc\TimerA1.h"
 #include "..\inc\TA3InputCapture.h"
-//#include "..\inc\TA2InputCapture.h"
+#include "..\inc\TA2InputCapture.h"
 #include "..\inc\TExaS.h"
 #include "..\inc\FlashProgram.h"
 #include "..\inc\Bump.h"
@@ -91,17 +91,17 @@ policies, either expressed or implied, of the FreeBSD Project.
 #define P2_0 (*((volatile uint8_t *)(0x42098060)))
 #define P1_0 (*((volatile uint8_t *)(0x42098040)))
 
-
+// -----PERIOD MEASURE FUNCTIONS----- //
 uint16_t Period0;              // (1/SMCLK) units = 83.3 ns units
 uint16_t First0;               // Timer A3 first edge, P10.4
 int Done0;                     // set each rising
 // max period is (2^16-1)*83.3 ns = 5.4612 ms
 // min period determined by time to run ISR, which is about 1 us
 void PeriodMeasure0(uint16_t time){
-  P2_0 = P2_0^0x01;            // thread profile, P2.0
-  Period0 = (time - First0)&0xFFFF; // 16 bits, 83.3 ns resolution
-  First0 = time;               // setup for next
-  Done0 = 1;
+    P2_0 = P2_0^0x01;            // thread profile, P2.0
+    Period0 = (time - First0)&0xFFFF; // 16 bits, 83.3 ns resolution
+    First0 = time;               // setup for next
+    Done0 = 1;
 }
 uint16_t Period1;              // (1/SMCLK) units = 83.3 ns units
 uint16_t First1;               // Timer A3 first edge, P10.5
@@ -109,12 +109,21 @@ int Done1;                     // set each rising
 // max period is (2^16-1)*83.3 ns = 5.4612 ms
 // min period determined by time to run ISR, which is about 1 us
 void PeriodMeasure1(uint16_t time){
-  P1_0 = P1_0^0x01;            // thread profile, P1.0
-  Period1 = (time - First1)&0xFFFF; // 16 bits, 83.3 ns resolution
-  First1 = time;               // setup for next
-  Done1 = 1;
+    P1_0 = P1_0^0x01;            // thread profile, P1.0
+    Period1 = (time - First1)&0xFFFF; // 16 bits, 83.3 ns resolution
+    First1 = time;               // setup for next
+    Done1 = 1;
 }
 
+// -----ENCODER CAPTURE FUNCTIONS----- //
+void EncoderCaputureRight(uint16_t currenttime){
+    P2->OUT ^= (1<<2);
+}
+void EncoderCaputureLeft(uint16_t currenttime){
+    P2->OUT ^= (1<<2);
+}
+
+// -----MOVEMENT CONTROL----- //
 uint16_t SpeedBuffer[500];      // RPM
 uint32_t PeriodBuffer[500];     // 1/12MHz = 0.083 usec
 uint32_t Duty,DutyBuffer[500];  // 0 to 15000
@@ -153,6 +162,7 @@ void Collect(void){
   }
 }
 
+// -----MISC----- //
 #define FLASH_BANK1_MIN     0x00020000  // Flash Bank1 minimum address
 #define FLASH_BANK1_MAX     0x0003FFFF  // Flash Bank1 maximum address
 void Debug_FlashInit(void){ uint32_t addr;
@@ -178,7 +188,7 @@ void Debug_FlashRecord(uint16_t *pt){uint32_t addr;
   Flash_FastWrite((uint32_t *)pt, addr, 16); // 16 words is 32 halfwords, 64 bytes
 }
 
-
+// -----MAIN------ //
 void main(void){
     // Setup LPLED2B for Testing
     // LPLED2B uses P2.2 GPIO to operate.
@@ -191,29 +201,30 @@ void main(void){
     DisableInterrupts();
     Clock_Init48MHz();   // 48 MHz clock; 12 MHz Timer A clock
     LaunchPad_Init();
+    Tachometer_Init();  // Also calls TimerA3_Init01()
     First0 = First1 = 0; // first will be wrong
      Done0 = Done1 = 0;   // set on subsequent
      Time = 0; DutyLeft = DutyRight = 0;
      Bump_Init();
      Motor_Init();        // activate Lab 12 software
      PWM_Init34((unsigned short int) 7500,(unsigned short int) 3750,(unsigned short int) 3750);  // Start Timer A0 with 2.6 and 2.7 as PWM outputs, period of 10mSec for parameter 7500 // @suppress("Invalid arguments")
-     TimerA3Capture_Init01(&PeriodMeasure0, &PeriodMeasure1);
-//     TimerA2Capture_Init01(&PeriodMeasure0, &PeriodMeasure1);
+     TimerA2Capture_Init(&PeriodMeasure0, &PeriodMeasure1);
+     TimerA3Capture_Init01(&EncoderCaputureRight, &EncoderCaputureLeft);
      TimerA1_Init(&Collect, 5000); // 100 Hz
-//     Motor_Forward(7500*.25, 7500*.25); // 25%
+    //     Motor_Forward(7500*.25, 7500*.25); // 25%
      TExaS_Init(LOGICANALYZER_P10);
      EnableInterrupts();
 
-     int count = 0;
+//     int count = 0;
      while(1) {
-         // count used for to time the flashing of the LED
-         count += 1;
-         // 'if' statement used to flash LED while system running
-         if (count > 2400000){
-             // One line code to flip a specific bit
-             P2->OUT ^= (1<<2);
-             count=0;
-         }
+//         // count used for to time the flashing of the LED
+//         count += 1;
+//         // 'if' statement used to flash LED while system running
+//         if (count > 2400000){
+//             // One line code to flip a specific bit
+//             P2->OUT ^= (1<<2);
+//             count=0;
+//         }
      }
 }
 
